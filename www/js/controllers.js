@@ -14,7 +14,7 @@ angular.module('scanner.controllers', ['ionic'])
     $scope.eventName = eventName;
     $scope.timer = null;
 
-    $ionicModal.fromTemplateUrl('my-modal.html', {
+    $ionicModal.fromTemplateUrl('templates/login.html', {
       scope: $scope,
       animation: 'slide-in-up'
     }).then(function(modal) {
@@ -38,10 +38,14 @@ angular.module('scanner.controllers', ['ionic'])
     $scope.$on('modal.removed', function() {
       // Execute action
     });
-
+    /**
+     * obsolete
+     * @param data
+     * @returns {boolean}
+       */
     $scope.checkMatric = function(data){
       //Regex pattern for Matric Card
-      //[UGS]: Either U or G or S 
+      //[UGS]: Either U or G or S
       //\d{7} : Extactly 7 digits
       //[A-Z] : Any Upper case letter
       //\s : White space
@@ -49,10 +53,10 @@ angular.module('scanner.controllers', ['ionic'])
       if($scope.isScan==true){
         var OK = pattern.exec(data.value);
         if (!OK) {
-          console.log(data.value + "isn't a valid matric card"); 
+          console.log(data.value + "isn't a valid matric card");
         }
         else{
-          console.log("Thanks, your matric no is " + OK[0]); 
+          console.log("Thanks, your matric no is " + OK[0]);
           return true;
         }
       }
@@ -67,11 +71,13 @@ angular.module('scanner.controllers', ['ionic'])
         $scope.message ="Null Values Present";
         $scope.isScan =false;
       }else{
-        $http.get(RealCheck+$scope.eventName.eventCode).then(function(resp){
+        $http.get(RealCheck.url+$scope.eventName.eventCode).then(function(resp){
           //alert(resp);
           if(resp.data.indexOf('false')== -1){
-            $scope.eventName.eventName = resp.data;
-            eventName.eventName = resp.data;
+            var data = JSON.parse(resp.data);
+            $scope.eventName.eventName = data.title;
+            eventName.eventName = data.title;
+            $scope.eventRegex = data.regex;
             $scope.isInValid ="Green";
             $scope.message="Congrats!It works!";
             $scope.eventMessage ="Change event!";
@@ -95,8 +101,11 @@ angular.module('scanner.controllers', ['ionic'])
 
     $scope.getManual = function() {
       if($scope.eventName.eventCode.length>0){
-        if($scope.app.matric.length==9 && ($scope.app.matric.indexOf('U')==0 || $scope.app.matric.indexOf('u')==0) && $scope.isScan ==true ){
-          $http.get(Register+eventName.eventCode+"/"+$scope.app.matric).then(function(resp) {
+        if(new RegExp($scope.eventRegex).test($scope.app.matric) ){
+          $http.get(Register.url+eventName.eventCode+"/"+$scope.app.matric).then(function(resp) {
+
+            /*
+            * old format
             if (resp.data.indexOf('New')>=0){
               vm.scanResults = "Added "+$scope.app.matric+" successfully! Please Proceed!";
               vm.succeedClass = "Green";
@@ -105,6 +114,11 @@ angular.module('scanner.controllers', ['ionic'])
               vm.scanResults = "Sorry "+$scope.app.matric+" Registered";
               vm.succeedClass = "Red";
             }
+            */
+            var responseJson = JSON.parse(resp.data);
+            vm.scanResults = responseJson.message;
+            vm.succeedClass = responseJson.flag ? "Green" : "Red";
+
           }, function(err) {
             console.error('ERR', err);
             // err.status will contain the status code
@@ -127,28 +141,33 @@ angular.module('scanner.controllers', ['ionic'])
 
     vm.successFunc = function(result) {
       // Success! Barcode data is here
-      if(result.length==9 && (result.indexOf('U')==0 || result.indexOf('u')==0) && $scope.isScan == true ){
-        $http.get(Register+eventName.eventCode+"/"+result)
+      if(new RegExp($scope.eventRegex).test(result) && $scope.isScan == true ){
+        $http.get(Register.url+eventName.eventCode+"/"+result)
           .then(function(resp) {
 
-            if (resp.data.indexOf('New')>=0) {
-              vm.scanResults = "Added "+result+" successfully! Please Proceed!";
-              vm.succeedClass = "Green";
+            //if (resp.data.indexOf('New')>=0) {
+            //  vm.scanResults = "Added "+result+" successfully! Please Proceed!";
+            //  vm.succeedClass = "Green";
+            //
+            //  if(result && ionic.Platform.isAndroid()) {
+            //    $scope.timer = $timeout(function () {
+            //      vm.scan();
+            //    }, 300);
+            //  }
+            //
+            //}
+            //else if(resp.data.indexOf('already')>=0){
+            //  vm.scanResults = "Sorry "+result+" Registered";
+            //  vm.succeedClass = "Red";
+            //}
+            //else{
+            //  vm.scanResults = "Result text '" +resp.data+"'";
+            //}
 
-              if(result && ionic.Platform.isAndroid()) {
-                $scope.timer = $timeout(function () {
-                  vm.scan();
-                }, 300);
-              }
+            var responseJson = JSON.parse(resp.data);
+            vm.scanResults = responseJson.message;
+            vm.succeedClass = responseJson.flag ? "Green" : "Red";
 
-            }
-            else if(resp.data.indexOf('already')>=0){
-              vm.scanResults = "Sorry "+result+" Registered";
-              vm.succeedClass = "Red";
-            }
-            else{
-              vm.scanResults = "Result text '" +resp.data+"'";
-            }
           }, function(err) {
             if($scope.timer) {
               $timeout.cancel($scope.timer);
@@ -251,7 +270,7 @@ angular.module('scanner.controllers', ['ionic'])
         $scope.isInValid = "Black";
         $scope.message ="Null Values Present"
       }else{
-        $http.get(RealCheck+$scope.eventName.eventCode).then(function(resp){
+        $http.get(RealCheck.url+$scope.eventName.eventCode).then(function(resp){
           if(resp.data == $scope.eventName.eventName){
             $scope.isInValid ="Green";
             $scope.message="Congrats!It works!";

@@ -24,7 +24,7 @@ angular.module('scanner', [
     url: 'http://localhost:8100/check/'
   })
   .constant('RealCheck',{
-    url:'172.21.147.177:8000/check/'
+    url:'http://172.21.147.177:8000/check/'
   })
   .service('eventName', function() {
     this.eventName = "";
