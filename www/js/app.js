@@ -29,7 +29,7 @@ angular.module('scanner', [
   .service('eventName', function() {
     this.eventName = "";
     this.eventCode = "";
-
+    this.eventRegex = "";
   })
 
 

@@ -1,6 +1,6 @@
 angular.module('scanner.controllers', ['ionic'])
 
-  .controller('HomeController', function($scope, $rootScope, $cordovaBarcodeScanner, $ionicPlatform, $http, $timeout , $ionicModal ,Check,RealCheck , eventName) {
+  .controller('HomeController', function($scope, $rootScope, $cordovaBarcodeScanner, $ionicPlatform, $http, $timeout , $ionicModal ,Check,RealCheck , eventName,Register,RealList) {
     var vm = this;
     vm.scanResults = '';
     vm.succeedClass = 'Normal';
@@ -72,11 +72,13 @@ angular.module('scanner.controllers', ['ionic'])
         $scope.isScan =false;
       }else{
         $http.get(RealCheck.url+$scope.eventName.eventCode).then(function(resp){
-          //alert(resp);
-          if(resp.data.indexOf('false')== -1){
-            var data = JSON.parse(resp.data);
+          console.log(resp.data);
+
+          if(resp.data.title){
+            data = resp.data;
             $scope.eventName.eventName = data.title;
             eventName.eventName = data.title;
+            eventName.eventRegex = data.regex;
             $scope.eventRegex = data.regex;
             $scope.isInValid ="Green";
             $scope.message="Congrats!It works!";
@@ -115,7 +117,7 @@ angular.module('scanner.controllers', ['ionic'])
               vm.succeedClass = "Red";
             }
             */
-            var responseJson = JSON.parse(resp.data);
+            responseJson = resp.data;
             vm.scanResults = responseJson.message;
             vm.succeedClass = responseJson.flag ? "Green" : "Red";
 
@@ -164,7 +166,7 @@ angular.module('scanner.controllers', ['ionic'])
             //  vm.scanResults = "Result text '" +resp.data+"'";
             //}
 
-            var responseJson = JSON.parse(resp.data);
+            var responseJson = resp.data;
             vm.scanResults = responseJson.message;
             vm.succeedClass = responseJson.flag ? "Green" : "Red";
 
@@ -185,7 +187,7 @@ angular.module('scanner.controllers', ['ionic'])
           $timeout.cancel($scope.timer);
           $scope.timer = null;
         }
-        vm.scanResults = "Invalid Matric Number: " + result;
+        vm.scanResults = "Invalid Matric Number for this event: " + result;
         vm.succeedClass = "Orange";
       }
 
@@ -271,7 +273,7 @@ angular.module('scanner.controllers', ['ionic'])
         $scope.message ="Null Values Present"
       }else{
         $http.get(RealCheck.url+$scope.eventName.eventCode).then(function(resp){
-          if(resp.data == $scope.eventName.eventName){
+          if(resp.data.title == $scope.eventName.eventName){
             $scope.isInValid ="Green";
             $scope.message="Congrats!It works!";
             $state.go('tab.home');
