@@ -12,7 +12,7 @@ angular.module('scanner', [
 ])
 
   .constant('List', {
-    url: 'http://localhost:8100/list/'
+    url: 'http://localhost:8100/list/',
   })
   .constant('RealList', {
     url: 'http://172.21.147.177:8000/list/'
